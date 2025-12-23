@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>💻 WEBSITE ELIO 💻</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    </head>
+    
+    <body>
+        <header class="imagetitle">
+  <div class="image-background" aria-hidden="true"></div>
+  <img class="image-logo" src="Image/LOGO-K.png" alt="Logo">
+
+  <nav class="navigation_conteneur">
+    <a class="nav-btn" href="index.html">Accueil</a>
+    <a class="nav-btn" href="dashbord.html">Compétence</a>
+    <a class="nav-btn" href="index_page_3.html">Consulter CV</a>
+  </nav>
+</header>
+
+
+<!-- Ajouter le loader -->
+<div id="loader"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = document.getElementById('loader');
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      
+      // Empêcher les clics multiples
+      if (this.classList.contains('loading')) return;
+      
+      // Récupérer l'URL cible
+      const href = this.getAttribute('href');
+      
+      // Vérifier si l'utilisateur clique sur la page actuelle
+      const currentUrl = new URL(window.location.href);
+      const targetUrl = new URL(href, window.location.href);
+      
+      // Comparer seulement le chemin, pas les paramètres ou ancres
+      const isSamePage = currentUrl.pathname === targetUrl.pathname;
+      
+      // Si c'est la même page, ne pas afficher le loader
+      if (isSamePage) {
+        // Optionnel: faire défiler vers une ancre si spécifiée
+        if (targetUrl.hash) {
+          const targetElement = document.querySelector(targetUrl.hash);
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+        return; // Sortir de la fonction sans afficher le loader
+      }
+      
+      // Ajouter la classe loading et afficher le loader
+      this.classList.add('loading');
+      loader.style.display = "block";
+      
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1000);
+    });
+  });
+});
+</script>
+
+
+
+            
+            <!-- Bloc de présentation (fond noir + typewriter) -->
+<div class="bloc-texte">
+  <!-- Titre à l’intérieur de la box -->
+  <h2 class="presentation">PRESENTATION 👨‍💻</h2>
+
+  <!-- Paragraphe animé -->
+  <p id="typewriter"></p>
+</div>
+
+
+
+<script>
+  const text = "Ce site a été conçu pour vous offrir un aperçu clair et structuré de mes compétences en développement web, cybersécurité, et technologies avancées. Entièrement développé en HTML, CSS et JavaScript, il reflète non seulement mes connaissances techniques, mais aussi ma capacité à créer des interfaces modernes, performantes et adaptées aux besoins spécifiques de chaque projet.";
+  const container = document.getElementById("typewriter");
+
+  // Création de chaque span Lettre avec délai d'animation
+  for (let i = 0; i < text.length; i++) {
+    const span = document.createElement("span");
+    span.textContent = text[i];
+    span.className = "letter";
+    span.style.animationDelay = `${i * 0.01}s`; // ajustez la vitesse ici
+    container.appendChild(span);
+  }
+  
+  // Démarre l'animation au chargement
+  window.onload = typeWriter;
+</script>
+
+              
+
+<div class="video-texte-conteneur">
+  <div class="bloc-texte">
+    <h3 class="marketing">MARKETING ✉️</h3>
+    <!-- On donne ici un id pour pouvoir animer ce paragraphe aussi -->
+    <p id="marketingText" class="texte-gauche-marketing"></p>
+  </div>
+
+  <video class="video-style" controls preload="metadata" controls>
+    <source src="Image/VideoAcceuil_1.mp4" type="video/mp4">
+    Navigateur incompatible avec la vidéo veuillez essayer autrement.
+  </video>
+</div>
+           
+              
+<script>
+  function typeWriter(elementId, text, speed) {
+    const container = document.getElementById(elementId);
+    container.innerHTML = ''; // vide le conteneur
+    for (let i = 0; i < text.length; i++) {
+      const span = document.createElement('span');
+      span.textContent = text[i];
+      span.className = 'letter';
+      span.style.animationDelay = `${i * speed}s`;
+      container.appendChild(span);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    // Appel 2 : bloc MARKETING
+    typeWriter(
+      'marketingText',
+      "La visibilité de votre communication est primordiale. Un site web performant, qui reflète avec précision l'ensemble de votre offre, constitue un atout majeur pour valoriser votre image de marque et instaurer la confiance auprès de vos clients, il est le vecteur incontournable pour renforcer votre présence sur le marché.",
+      0.01 // un peu plus lent si tu veux
+    );
+  });
+</script>
+
+
+<!-- ===== SLIDE + TITRE (alignés à gauche) ===== -->
+  <section id="galerie" class="gallery-section">
+  <h2 class="fancy-title" aria-label="Galerie">
+    <span class="badge"><span class="glyph">📸</span></span>
+    <span class="label">GALERIE</span>
+  </h2>
+
+  <div class="gc-row">
+    <!-- GAUCHE : ta galerie existante -->
+    <div class="gc-left">
+      <div class="slider">
+        <div class="slides">
+          <img src="Image/ImagePanel.png"      alt="">
+          <img src="Image/ImageCable.jpg"      alt="">
+          <img src="Image/ImageReparation.jpg" alt="">
+          <img src="Image/ImageTache.jpg"      alt="">
+          <img src="Image/cadnas-bleu.jpg"      alt="">
+        </div>
+        <div class="dots">
+          <div class="dot active" data-index="0"></div>
+          <div class="dot" data-index="1"></div>
+          <div class="dot" data-index="2"></div>
+          <div class="dot" data-index="3"></div>
+          <div class="dot" data-index="4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DROITE : ton agenda (markup + JS inchangés) -->
+     <div class="gc-right">
+  <h2 class="fancy-title fancy-title--agenda" aria-label="Agenda">
+    <span class="badge"><span class="glyph">📅</span></span>
+    <span class="label">AGENDA</span>
+  </h2>
+  
+    <div class="calendar">
+      <!-- ton header + grid comme tu l’as envoyé -->
+      <header class="calendar-header">
+        <div class="nav-center">
+          <button id="prev" class="nav" aria-label="Mois précédent">
+            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+          </button>
+          <h2 id="monthYear"></h2>
+          <button id="next" class="nav" aria-label="Mois suivant">
+            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+          </button>
+        </div>
+        <button id="today">Aujourd’hui</button>
+      </header>
+
+      <div class="calendar-grid">
+        <div>Lun</div><div>Mar</div><div>Mer</div>
+        <div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<script>
+    const monthEl    = document.getElementById('monthYear');
+    const prevBtn    = document.getElementById('prev');
+    const nextBtn    = document.getElementById('next');
+    const todayBtn   = document.getElementById('today');
+    const grid       = document.querySelector('.calendar-grid');
+
+    const today    = new Date();
+    const isoToday = today.toISOString().slice(0,10);
+    let currentYear  = today.getFullYear();
+    let currentMonth = today.getMonth();
+    let selectedDate = null;
+
+    const months = [
+      'Janvier','Février','Mars','Avril','Mai','Juin',
+      'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+    ];
+
+    function renderCalendar(year, month) {
+      grid.querySelectorAll('.day').forEach(n=>n.remove());
+      monthEl.textContent = `${months[month]} ${year}`;
+
+      const firstDay    = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysPrev    = new Date(year, month, 0).getDate();
+
+      // mois précédent
+      for (let i = firstDay - 1; i >= 0; i--) {
+        grid.append(createDayDiv(daysPrev - i, year, month - 1, true));
+      }
+      // mois courant
+      for (let d = 1; d <= daysInMonth; d++) {
+        grid.append(createDayDiv(d, year, month, false));
+      }
+      // mois suivant
+      const total = grid.querySelectorAll('.day').length;
+      const rem   = total % 7;
+      const left  = rem === 0 ? 0 : 7 - rem;
+      for (let i = 1; i <= left; i++) {
+        grid.append(createDayDiv(i, year, month + 1, true));
+      }
+    }
+
+    function createDayDiv(day, year, monthIndex, isOther) {
+      let y = year, m = monthIndex;
+      if (m < 0)  { m = 11; y = year - 1; }
+      if (m > 11) { m = 0;  y = year + 1; }
+
+      const div = document.createElement('div');
+      div.className = 'day' + (isOther ? ' other-month' : '');
+      const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      div.dataset.date = iso;
+      div.textContent = day;
+
+      if (!isOther && iso === isoToday && iso !== selectedDate) {
+        div.style.background = '#555';
+      }
+      if (iso === selectedDate) {
+        div.classList.add('selected');
+      }
+      if (!isOther) {
+        div.addEventListener('click', () => {
+          const prev = grid.querySelector('.day.selected');
+          if (prev) prev.classList.remove('selected');
+          selectedDate = iso;
+          div.classList.add('selected');
+        });
+      }
+      return div;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      currentMonth--;
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      renderCalendar(currentYear, currentMonth);
+    });
+    nextBtn.addEventListener('click', () => {
+      currentMonth++;
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      renderCalendar(currentYear, currentMonth);
+    });
+    todayBtn.addEventListener('click', () => {
+      currentYear  = today.getFullYear();
+      currentMonth = today.getMonth();
+      selectedDate = isoToday;
+      renderCalendar(currentYear, currentMonth);
+    });
+
+    // affichage initial
+    renderCalendar(currentYear, currentMonth);
+  </script>
+
+
+
+  <script>
+    const sliderEl   = document.querySelector('.slider');
+    const slidesEl   = sliderEl.querySelector('.slides');
+    const dots       = sliderEl.querySelectorAll('.dot');
+    const REAL_COUNT = slidesEl.children.length; // 4 vraies
+    let index = 0, interval;
+
+    // 1) Clone de la 1ère diapo
+    const clone = slidesEl.children[0].cloneNode(true);
+    slidesEl.appendChild(clone);
+
+    // 2) Ajustement des largeurs (TOTAL = 5)
+    const TOTAL = REAL_COUNT + 1;
+    slidesEl.style.width = `${TOTAL * 100}%`;
+    Array.from(slidesEl.children).forEach(img => {
+      img.style.width = `${100 / TOTAL}%`;
+    });
+
+    // 3) Fonction de translation douce
+    function goTo(n) {
+      const shift = (n * 100) / TOTAL;
+      // translate3d pour l'accélération GPU
+      slidesEl.style.transform = `translate3d(-${shift}%,0,0)`;
+      dots.forEach(dot =>
+        dot.classList.toggle('active', +dot.dataset.index === (n % REAL_COUNT))
+      );
+      index = n;
+    }
+
+    // 4) Boucle infinie
+    slidesEl.addEventListener('transitionend', () => {
+      if (index === REAL_COUNT) {
+        slidesEl.style.transition = 'none';
+        goTo(0);
+        slidesEl.getBoundingClientRect(); // reflow
+        slidesEl.style.transition = 'transform 1s cubic-bezier(0.645,0.045,0.355,1)';
+      }
+    });
+
+    // 5) Auto-défilement
+    function startAuto() {
+      interval = setInterval(() => goTo((index + 1) % TOTAL), 4000);
+    }
+    startAuto();
+
+    // 6) Interaction pastilles
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        clearInterval(interval);
+        goTo(+dot.dataset.index);
+        startAuto();
+      });
+    });
+
+    // 7) Init sans transition gênante
+    slidesEl.style.transition = 'none';
+    goTo(0);
+    slidesEl.getBoundingClientRect();
+    slidesEl.style.transition = 'transform 1s cubic-bezier(0.645,0.045,0.355,1)';
+  </script>
+
+
+<!-- ===== À PROPOS ===== -->
+<section id="about" class="bloc-texte">
+  <h2 class="about-title">À propos de moi...<span aria-hidden="true">👤</span></h2>
+  <p id="about-typer" class="typewriter"></p>
+</section>
+
+
+
+<script>
+  // Texte à afficher
+  const aboutText =
+    "Découvert l’informatique très jeune avec mon premier ordinateur, j’ai exploré Kali Linux et appris à configurer et à automatiser des tâches avec des outils d’analyse (Nmap, Wireshark, Metasploit) et des scripts. Parallèlement j’ai développé des compétences réseaux et télécommunications : TCP/IP, routage, VLAN, NAT, pare-feu, supervision et dépannage, mise en place de services (DNS, DHCP) et notions opérationnelles. J’interviens sur l’écosystème Windows, avec des compétences en installation, configuration, optimisation, maintenance et sécurisation des postes de travail, et j’automatise et administre via PowerShell en gardant la sécurité et la disponibilité comme priorités. Ces compétences complètent mon profil web et cybersécurité et me permettent de concevoir des solutions end-to-end, du front à l’infra.";
+
+  // Génère les <span> lettre par lettre avec un délai
+  document.addEventListener("DOMContentLoaded", () => {
+    const box = document.getElementById("about-typer");
+    for (let i = 0; i < aboutText.length; i++) {
+      const s = document.createElement("span");
+      s.textContent = aboutText[i];
+      s.className = "letter";
+      s.style.animationDelay = `${i * 0.015}s`; // vitesse (↓ pour + rapide)
+      box.appendChild(s);
+    }
+  });
+</script>
+
+
+
+
+        </main>
+
+        <footer class="site-footer">
+          <div class="footer-content">
+            <p><strong>Contact</strong></p>
+            <p>Email : <a href="email@example.com">mr.kairoelio@gmail.com</a></p>
+            <p>Téléphone : +33 6 01 76 02 28</p>
+            <p>Adresse : 11 rue Victor Hugo, 69520 Grigny</p>
+          </div>
+        </footer>               
+    </body>
+</html>
