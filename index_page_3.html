@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css">
+        <title>PAGE 3</title> 
+        <style>
+            :root { 
+                --space-above-footer: 24px; /* Réduit de 48px à 24px */
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            main {
+                flex: 1;
+                padding: 10px 0; /* Ajout de padding réduit */
+            }
+            
+            .site-footer {
+                margin-top: var(--space-above-footer);
+                width: 100%;
+                background-color: #1a1a1a;
+                color: #f1f1f1;
+                padding: 12px 0;
+                text-align: center;
+                font-size: 14px;
+            }
+            
+            .site-footer .footer-content {
+                max-width: 800px;
+                margin: 0 auto;
+                line-height: 1.0;
+            }
+            
+            .site-footer a { 
+                color: #ff8c00; 
+                text-decoration: none; 
+            }
+            
+            .site-footer a:hover { 
+                text-decoration: underline; 
+            }
+            
+            .site-footer p { 
+                margin: 6px 0; 
+            }
+            
+            /* Style pour le bouton de téléchargement */
+            .download-container {
+                text-align: center;
+                margin-top: 15px; /* Réduit de 20px à 15px */
+                margin-bottom: 20px; /* Réduit de 40px à 20px */
+            }
+            
+            .download-btn {
+                background: #1a1a1a;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .download-btn:hover {
+                transform: scale(1.1);
+                box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            }
+            
+            .download-btn img {
+                width: 30px;
+                height: 30px;
+                filter: invert(1);
+            }
+            
+            /* Conteneur */
+.presentation_cv{
+  margin: 28px 0 40px;
+  text-align: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  perspective: 800px;
+}
+
+/* Texte avec dégradé animé + halo */
+.presentation_cv span{
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    #ff6600,
+    #f8590f,
+    #ffffff
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3.5s linear infinite,
+             glowPulse 2.8s ease-in-out infinite;
+  padding-bottom: 10px;
+  transition: transform 0.18s ease;
+}
+
+/* Ligne sous le titre — statique */
+.presentation_cv::after{
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -12px;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6600, #f8590f);
+  border-radius: 3px;
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.12);
+  transform: translateZ(0);
+  transition: transform 0.45s cubic-bezier(.2,.9,.3,1),
+              box-shadow 0.45s cubic-bezier(.2,.9,.3,1);
+  will-change: transform, box-shadow;
+}
+
+/* Hover — effet 3D */
+.presentation_cv:hover span{
+  transform: translateY(-2px);
+}
+
+.presentation_cv:hover::after{
+  transform: translateY(-8px)
+             rotateX(18deg)
+             scaleX(1.04)
+             translateZ(8px);
+  box-shadow: 0 18px 30px rgba(255, 102, 0, 0.18);
+}
+
+/* Animations texte */
+@keyframes gradientShift{
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes glowPulse{
+  0%{
+    text-shadow:
+      0 0 0 rgba(255,140,0,0),
+      0 0 0 rgba(255,180,80,0);
+  }
+  50%{
+    text-shadow:
+      0 0 8px rgba(255,140,0,0.35),
+      0 0 26px rgba(255,180,80,0.18);
+  }
+  100%{
+    text-shadow:
+      0 0 0 rgba(255,140,0,0),
+      0 0 0 rgba(255,180,80,0);
+  }
+}
+
+/* Accessibilité */
+@media (prefers-reduced-motion: reduce){
+  .presentation_cv span,
+  .presentation_cv::after,
+  .presentation_cv:hover::after{
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px){
+  .presentation_cv{
+    font-size: 24px;
+    margin: 20px 0 28px;
+  }
+  .presentation_cv::after{
+    height: 3px;
+    bottom: -10px;
+  }
+}
+
+            
+            .cv-container {
+                margin: 10px auto; /* Réduit l'espace autour du CV */
+                text-align: center;
+            }
+            
+            .cv_style {
+                max-width: 90%; /* Ajuste la taille du CV */
+                height: auto;
+                cursor: pointer;
+            }
+            
+            /* Styles pour l'overlay et les boutons de zoom */
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                display: none;
+                justify-content: center;
+                align-items: flex-start;
+                z-index: 1000;
+                padding: 10px; /* Réduit le padding */
+                box-sizing: border-box;
+                overflow-y: auto;
+            }
+            
+            .overlay-content {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                max-width: 1200px;
+                min-height: 100%;
+                padding: 20px 0 80px 0; /* Réduit le padding */
+            }
+            
+            .overlay img {
+                max-width: 81%;
+                max-height: none;
+                object-fit: contain;
+                transition: transform 0.3s ease;
+            }
+            
+            .zoom-controls {
+                position: fixed;
+                bottom: 20px; /* Remonté */
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 15px;
+                z-index: 1001;
+                background: rgba(26, 26, 26, 0.9);
+                padding: 12px 24px;
+                border-radius: 30px;
+                backdrop-filter: blur(5px);
+            }
+            
+            .zoom-btn {
+                background: transparent;
+                border: none;
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                color: white;
+                font-size: 18px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255,255,255,0.2);
+            }
+            
+            .zoom-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: scale(1.05);
+            }
+        </style>
+    </head>
+
+    <body>
+        <header class="imagetitle">
+            <div class="image-background" aria-hidden="true"></div>
+            <img class="image-logo" src="Image/LOGO-K.png" alt="Logo">
+            <nav class="navigation_conteneur">
+                <a class="nav-btn" href="index.html">Accueil</a>
+                <a class="nav-btn" href="dashbord.html">Compétence</a>
+                <a class="nav-btn" href="index_page_3.html">Consulter CV</a>
+            </nav>
+        </header>
+
+<!-- Ajouter le loader -->
+<div id="loader"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = document.getElementById('loader');
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      
+      // Empêcher les clics multiples
+      if (this.classList.contains('loading')) return;
+      
+      // Récupérer l'URL cible
+      const href = this.getAttribute('href');
+      
+      // Vérifier si l'utilisateur clique sur la page actuelle
+      const currentUrl = new URL(window.location.href);
+      const targetUrl = new URL(href, window.location.href);
+      
+      // Comparer seulement le chemin, pas les paramètres ou ancres
+      const isSamePage = currentUrl.pathname === targetUrl.pathname;
+      
+      // Si c'est la même page, ne pas afficher le loader
+      if (isSamePage) {
+        // Optionnel: faire défiler vers une ancre si spécifiée
+        if (targetUrl.hash) {
+          const targetElement = document.querySelector(targetUrl.hash);
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+        return; // Sortir de la fonction sans afficher le loader
+      }
+      
+      // Ajouter la classe loading et afficher le loader
+      this.classList.add('loading');
+      loader.style.display = "block";
+      
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1000);
+    });
+  });
+});
+</script>
+        
+        <main>
+
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
+
+            <h2 class="presentation_cv">CONSULTER CV</h2>
+
+            <div class="cv-container">
+                <img
+                    src="Image/cv_informatique.jpg"
+                    alt="CV Informatique"
+                    class="cv_style"
+                    onclick="openCVOverlay(this)"
+                >
+            </div>
+
+            <!-- Bouton de téléchargement juste en dessous du CV -->
+            <div class="download-container">
+                <button class="download-btn" onclick="downloadCV()">
+                    <img src="Image/icone-download.png" alt="Télécharger le CV">
+                </button>
+            </div>
+
+            <div id="cvOverlay" class="overlay">
+                <div class="overlay-content">
+                    <img id="cvOverlayImg" src="" alt="CV agrandie">
+                </div>
+                <div class="zoom-controls" onclick="event.stopPropagation()">
+                    <button class="zoom-btn" onclick="zoomIn()">+</button>
+                    <button class="zoom-btn" onclick="zoomOut()">-</button>
+                    <button class="zoom-btn" onclick="resetZoom()">⟲</button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="footer-content">
+                <p><strong>Contact</strong></p>
+                <p>Email : <a href="mailto:mr.kairoelio@gmail.com">mr.kairoelio@gmail.com</a></p>
+                <p>Téléphone : +33 6 01 76 02 28</p>
+                <p>Adresse : 11 rue Victor Hugo, 69520 Grigny</p>
+            </div>
+        </footer>     
+        
+        <script>
+            let currentScale = 1;
+            const minScale = 0.5;
+            const maxScale = 3;
+            const scaleStep = 0.05;
+            
+            function openCVOverlay(img) {
+                const overlay = document.getElementById('cvOverlay');
+                const overlayImg = document.getElementById('cvOverlayImg');
+                overlayImg.src = img.src;
+                overlay.style.display = 'flex';
+                currentScale = 1;
+                overlayImg.style.transform = 'scale(1)';
+                document.body.style.overflow = 'hidden';
+                
+                // Scroll vers le haut à l'ouverture
+                setTimeout(() => {
+                    overlay.scrollTop = 0;
+                }, 50);
+            }
+
+            function closeCVOverlay() {
+                document.getElementById('cvOverlay').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+            
+            function downloadCV() {
+                const pdfUrl = 'Image/cv_informatique.jpg';
+                const link = document.createElement('a');
+                link.href = pdfUrl;
+                link.download = 'CV_ELIO_KAIRO.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            function zoomIn() {
+                if (currentScale < maxScale) {
+                    currentScale += scaleStep;
+                    applyZoom();
+                }
+            }
+            
+            function zoomOut() {
+                if (currentScale > minScale) {
+                    currentScale -= scaleStep;
+                    applyZoom();
+                }
+            }
+            
+            function resetZoom() {
+                currentScale = 1;
+                applyZoom();
+                // Remonter en haut
+                const overlay = document.getElementById('cvOverlay');
+                overlay.scrollTop = 0;
+                
+                // Forcer le recalcul du style pour s'assurer que le zoom est appliqué
+                const overlayImg = document.getElementById('cvOverlayImg');
+                overlayImg.style.transform = 'scale(1)';
+            }
+            
+            function applyZoom() {
+                const overlayImg = document.getElementById('cvOverlayImg');
+                overlayImg.style.transform = `scale(${currentScale})`;
+                overlayImg.style.transition = 'transform 0.3s ease';
+            }
+
+            // Fermer l'overlay en cliquant à l'extérieur de l'image
+            document.getElementById('cvOverlay').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCVOverlay();
+                }
+            });
+        </script>
+    </body>
+</html>
