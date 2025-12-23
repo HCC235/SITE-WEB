@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="style.css">
+<title>KAIRO Dashboard</title>
+<style>
+  :root{
+    /* Adapte ces couleurs à ton thème global */
+    --bg1:#0b0f1f; --bg2:#101633; /* fond en dégradé sombre bleu */
+    --card:#151B3A;              /* carte */
+    --text:#E9ECF5; --muted:#9AA2BE;
+    --accent:#ff631e;            /* orange KAIRO */
+    --accent-2:#ff9a55;
+    --ok:#6ef2b2; --warn:#ffb454; --err:#ff8a8a;
+    --border:#232955; --ring:rgba(255,99,30,.45);
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radar-h: 430px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial;
+    background:
+      radial-gradient(900px 500px at 100% 100%, #0f1330 0%, transparent 70%),
+      radial-gradient(1000px 600px at 10% -10%, #101636 0%, transparent 60%),
+      linear-gradient(180deg,var(--bg1),var(--bg2));
+  }
+
+
+
+
+
+  /* centre l'image + le texte */
+.rowIntro .overview{
+  display:grid;
+  place-items:center;
+  gap:18px;
+}
+
+/* wrap agréable + retours à la ligne du HTML */
+.lead{
+  max-width: min(80ch, 92%);
+  margin: 8px auto 20px;
+  text-align: center;
+  line-height: 1.65;
+  white-space: pre-line;      /* <= transforme les \n en <br> */
+  text-wrap: balance;         /* (optionnel) césure plus jolie */
+}
+
+  /* Centrer l'image et empêcher qu'elle pousse le texte sur le côté */
+.rowIntro .overview{
+  display: flex;              /* on garde flex, mais… */
+  flex-direction: column;     /* …en colonne pour empiler image puis texte */
+  gap: 12px;
+}
+
+/* Le bloc image est centré dans la carte */
+.rowIntro .overview .intro-media{
+  margin: 9px auto 0;         /* centre horizontalement */
+  display: block;
+}
+
+/* Taille et rendu de l'image (ajuste --intro-img-size si besoin) */
+:root { --intro-img-size: 240px; }
+.rowIntro .overview .intro-media img{
+  width: var(--intro-img-size);
+  height: 150px;
+  object-fit: contain;        /* évite toute déformation */
+  display: block;             /* pour que margin auto fonctionne toujours */
+  /* Optionnel : un peu de style */
+  border-radius: 13px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+
+/* Le texte reste à la ligne suivante, pleine largeur (alignement à ta convenance) */
+.rowIntro .overview .lead{
+  margin: 0;                  /* pas de décalage horizontal */
+  /* text-align: center; */   /* -> décommente si tu veux centrer le texte aussi */
+}
+
+
+
+
+
+/* Si tes barres sont dans une liste */
+#topSkillsList li.skill:last-child{
+  margin-bottom: 20px;          /* 16–24px selon ton goût */
+}
+
+/* Variante si tes barres sont des lignes .skill-row */
+.topSkills .skill-row:last-child{
+  margin-bottom: 20px;
+}
+
+
+  /* Donne de la hauteur aux 2 cartes de la rangée */
+.row2 .radar,
+.row2 .toplist{
+  min-height: 600px;                  /* ajuste 560–720px selon le rendu */
+}
+
+/* Le radar avait height:340px; -> on l’augmente réellement */
+.radar canvas{
+  height: 520px;                      /* + espace pour la note */
+}
+
+/* Optionnel : un peu plus d’air interne */
+.row2 .card{ padding-bottom: 20px; }
+
+#topLine { display:block; margin-top: 26px; }
+
+/* Donut */
+.gauge { display:flex; gap:1rem; align-items:center; }
+.ring { width:120px; height:120px; }
+.donut { transform: rotate(-90deg); transform-origin: 60px 60px; } /* départ en haut */
+
+.track {
+  stroke: rgba(255,255,255,0.08); /* piste discrète (adaptable à ton thème) */
+}
+
+.value {
+  stroke: url(#donutGrad);
+  stroke-dasharray: 0 999;           /* sera animé en JS */
+  filter: drop-shadow(0 0 6px rgba(255, 138, 76, 0.35));
+}
+
+#gaugeText { fill:#fff; opacity:.9; }
+
+
+
+
+  .wrap{max-width:1200px; margin-inline:auto; padding:28px 18px 64px}
+  .titlebar{display:flex; align-items:center; gap:14px; margin-bottom:18px}
+  .titlebar h1{font-size:clamp(22px,2.8vw,34px); margin:0; letter-spacing:.6px}
+  .badge{font-size:12px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--border);
+         box-shadow:inset 0 0 0 1px rgba(255,255,255,.02), 0 0 0 1px rgba(255,99,30,.18); color:var(--muted)}
+
+  /* controls */
+  .controls{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:16px 0 24px}
+  .chip{cursor:pointer; user-select:none; padding:8px 12px; border-radius:12px; background:#0f1533; border:1px solid var(--border);
+        box-shadow:inset 0 0 0 1px rgba(255,255,255,.03); color:var(--muted); transition:.2s}
+  .chip[data-active="true"]{color:var(--text); background:linear-gradient(180deg,#1a213f,#111735);
+     border-color:rgba(255,99,30,.6); box-shadow:0 0 0 1px rgba(255,99,30,.25), 0 8px 18px rgba(0,0,0,.35)}
+  .spacer{flex:1}
+  .toggle{display:flex; align-items:center; border-radius:12px; overflow:hidden; border:1px solid var(--border)}
+  .toggle button{all:unset; cursor:pointer; padding:10px 14px; background:#0f1533; color:var(--muted)}
+  .toggle button.active{color:var(--text); background:linear-gradient(180deg,#1a213f,#111735);
+    box-shadow:inset 0 -2px 0 0 var(--accent)}
+
+  /* grid */
+  .grid{display:grid; gap:16px; grid-template-columns:repeat(12,1fr)}
+  .card{grid-column:span 12; background:linear-gradient(180deg,#171d3b,#141a35);
+        border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow), 0 0 0 1px rgba(255,99,30,.12)}
+  .card h3{
+  margin: 0 0 11px;
+  font-size:12px;                /* garde discret mais net */
+  letter-spacing:.3px;
+  color:#eaf0ff;
+}
+
+/* Applique l'espacement à tous les titres avec le point orange */
+.card h1.accent,
+.card h2.accent,
+.card h3.accent,
+.card h4.accent,
+.card h5.accent,
+.card h6.accent {
+  margin-bottom: 20px;         /* Ajoute de l'espace sous les titres */
+  display: flex;               /* On garde le point et le texte sur la même ligne */
+  align-items: center;         /* Centre verticalement le point et le texte */
+  gap: 8px;                    /* Petit espace entre le point et le texte */
+}
+
+
+
+  @media(min-width:900px){
+    .kpis>.card{grid-column:span 4}
+    .row2 .radar{grid-column:span 5}
+    .row2 .toplist{grid-column:span 7}
+    .row3 .rings{grid-column:span 12}
+  }
+
+  /* KPI gauge */
+  .gauge{display:flex; align-items:center; gap:14px}
+  .gauge .ring{width:84px; height:84px}
+  .kpi-text .big{font-size:28px; font-weight:700}
+  .kpi-text .sub{color:var(--muted); font-size:13px}
+
+  /* radar */
+  .radar canvas{width:100%; height:340px; display:block; border-radius:12px; background:linear-gradient(180deg,#12183a,#0f1330);
+    border:1px solid var(--border); height: var(--radar-h);}
+
+  /* Top list bars */
+  .row{display:grid; grid-template-columns:1.2fr auto; align-items:center; gap:14px}
+  .skillbar{position:relative; height:10px; border-radius:999px; background:#0e1430; border:1px solid #1d2448; overflow:hidden}
+  .skillbar .fill{transition: width .9s cubic-bezier(.2,.8,.2,1), background .3s, box-shadow .3s; position:absolute; inset:0 0 0 0; width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow:0 0 20px var(--ring) inset;}
+  .row strong{font-weight:600}
+  .row small{color:var(--muted)}
+
+  .rows{display:grid; gap:12px}
+
+  /* === Skill cards (nouvelle présentation) === */
+.skillgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px}
+.skillcard{
+  position:relative; border-radius:16px; padding:14px;
+  background:linear-gradient(180deg,#161c3b,#121739);
+  border:1px solid var(--border);
+  box-shadow:0 10px 22px rgba(0,0,0,.28), 0 0 0 1px rgba(255,255,255,.02);
+  transition:transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.skillcard:hover{transform:translateY(-2px); border-color:rgba(255,99,30,.35); box-shadow:0 14px 28px rgba(0,0,0,.35), 0 0 0 1px rgba(255,99,30,.15)}
+
+.skillcard .head{display:flex; align-items:center; gap:10px; margin-bottom:8px}
+.skillcard .dot{width:8px; height:8px; border-radius:999px; background:linear-gradient(180deg,var(--c1),var(--c2)); box-shadow:0 0 10px var(--glow)}
+.skillcard .name{font-weight:700}
+.skillcard .cat{margin-left:auto; font-size:12px; color:var(--muted);
+  background:rgba(255,255,255,.05); border:1px solid var(--border); padding:3px 8px; border-radius:999px}
+
+.skillcard .center{display:flex; justify-content:center; margin:6px 0 10px}
+.skillcard svg.radial{width:82px; height:82px}
+.skillcard .meter{height:8px; border-radius:999px; background:#0e1430; border:1px solid #1d2448; overflow:hidden}
+.skillcard .meter>i{display:block; height:100%; width:var(--w);
+  background:linear-gradient(90deg,var(--c1),var(--c2)); box-shadow:0 0 14px var(--glow) inset; transition:width .8s cubic-bezier(.2,.8,.2,1)}
+/* on peut retirer l’ancienne .rings-grid si tu veux */
+
+
+  /* SVG ring (donut) */
+  .donut{transform:rotate(-90deg)}
+  .donut circle.track{stroke:#263055}
+  .donut circle.value{stroke:var(--accent); filter:drop-shadow(0 0 6px var(--ring)); transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+  .donut text{transform:rotate(90deg); fill:var(--text)}
+
+  /* card titles accent underline */
+  .accent{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 14px;
+  border-radius:14px;
+  background:linear-gradient(180deg,#1b2246,#121739);
+  border:1px solid var(--border);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 10px 22px rgba(0,0,0,.35),
+    0 0 0 1px rgba(255,99,30,.10);
+  position:relative;
+  isolation:isolate;
+  text-shadow:0 1px 0 rgba(0,0,0,.25);
+  text-transform:uppercase; letter-spacing:.6px; font-weight:700;
+}
+
+/* petite puce dégradée à gauche */
+.accent::before{
+  content:"";
+  width:10px; height:10px; border-radius:999px;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 12px var(--ring);
+}
+
+/* liseré lumineux sous le titre */
+.accent::after{
+  content:"";
+  position:absolute; left:12px; right:12px; bottom:-7px;
+  height:2px; border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:.55;
+  content:none !important;   /* ou display:none; */
+}
+  /* subtle card header actions */
+  .card .actions{display:flex; gap:8px; margin-left:auto}
+  .btn{border:1px solid var(--border); background:#0f1533; color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer}
+  .btn:hover{border-color:rgba(255,99,30,.6); color:var(--text)}
+
+
+
+/* TOP compétences : barres très fines */
+.toplist .skillbar{
+  height:4px;                 /* ↓ était 10px */
+  border-width:1px;
+}
+.toplist .skillbar .fill{
+  height:100%;                /* suit la nouvelle hauteur */
+  box-shadow:0 0 10px var(--ring) inset;  /* halo plus discret */
+}
+
+/* TOP compétences : texte plus petit et compact */
+.toplist .rows{ gap:8px; }                       /* lignes plus serrées */
+.toplist .row strong{
+  font-size:13px;                                /* ↓ nom de la compétence */
+  font-weight:600;
+  display:block;
+  margin-bottom:6px;                             /* espace au-dessus de la barre */
+  color:#e9ecf5;
+}
+.toplist .row small{
+  font-size:12px;                                /* ↓ pourcentage à droite */
+  color:#b9c1df;
+}
+
+/* (si tu veux encore plus petit, passe à 12px / 11px) */
+
+
+
+/* Canvas du graphe dans la carte TOP compétences */
+.toplist canvas{
+  width:100%; height:180px; display:block; margin-top:12px;
+  border-radius:10px;
+  background:linear-gradient(180deg,#12183a,#0f1330);
+  border:1px solid var(--border);
+}
+
+
+
+.intro-media {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.intro-media img {
+  max-width: 200px;
+  height: auto;
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.3));
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+.intro-media img:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.6));
+}
+
+
+
+.overview-text {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #cbd5e1;
+  letter-spacing: 0.01em;
+}
+
+.overview-container span {
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+.overview-container strong {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+
+
+
+  /* --- Overview / Présentation --- */
+.overview{display:grid; grid-template-columns:1.4fr 1fr; gap:16px}
+.lead{margin:0; line-height:1.6; color:#e7ebff}
+.bullets{list-style:none; margin:0; padding:0; display:grid; gap:10px}
+.bullets li{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border-radius:12px;
+  background:linear-gradient(180deg,#12183a,#101637);
+  border:1px solid var(--border);
+}
+.bullets li span{color:#cfd6ff}
+.bullets li b{font-weight:700; color:#ffffff}
+@media (max-width:900px){ .overview{grid-template-columns:1fr} }
+
+#overviewText{  padding-left: 27px; }
+#overviewBullets{ padding-left: 30px; margin-top: 10px; }
+
+
+
+
+/* Titre “charte moderne” — centrage + animation douce */
+.charte-title{
+  display:block;
+  width:100%;
+  margin:20px auto 0;
+  text-align:center;
+  font-weight:700;
+  font-size:clamp(13px,1.15vw,16px);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+
+  /* texte en dégradé (neon soft) */
+  color:transparent;
+  background:linear-gradient(90deg,#E8ECFF 0%,#BFC9FF 100%);
+  -webkit-background-clip:text;background-clip:text;
+
+  /* profondeur + entrée smooth */
+  filter:drop-shadow(0 2px 8px rgba(255,255,255,.06));
+  opacity:0;
+  transform:translateY(8px) scale(.985);
+  animation:titleIn .65s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+  /* footer note */
+  .note{margin-top:16px; color:var(--muted); font-size:12px}
+
+
+.overview-container {
+  max-width: 880px;
+  margin-inline: auto;
+  text-align: left;
+  color: #e2e8f0;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+.overview-paragraph {
+  font-size: 1.1rem;        /* Taille unique et lisible */
+  font-weight: 400;
+  line-height: 2.10;
+  color: #f1f5f9;
+  letter-spacing: 0.01em;
+  margin: 1.5rem 0 0;
+  text-align: justify;
+  hyphens: auto;
+}
+
+
+
+
+.intro-media {
+    background: transparent !important;
+    max-width: 300px;
+    margin: 25px auto;
+    text-align: center;
+}
+
+
+.intro-media2 {
+    background: transparent !important;
+    max-width: 150px;
+    margin: 25px auto;
+    text-align: center;
+}
+
+.intro-media2 img {
+    width: 100%;
+    height: auto;
+    max-height: 120px;
+    object-fit: contain;
+    background: transparent !important;
+}
+
+
+.intro-media3 {
+    background: transparent !important;
+    max-width: 250px !important;
+    margin: 40px auto !important; /* Marge haut/bas */
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 15px !important; /* Espace interne */
+    text-align: center !important;
+    display: block !important;
+    clear: both !important;
+}
+
+.intro-media3 img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 120px !important;
+    object-fit: contain !important;
+    background: transparent !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+.intro-media3 img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 120px !important;
+    object-fit: contain !important;
+    background: transparent !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+
+
+
+.intro-media4 {
+    background: transparent !important;
+    max-width: 300px;
+    text-align: center;
+    margin: 40px auto !important; /* Marge haut/bas */
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.intro-media4 img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    background: transparent !important;
+}
+
+
+
+
+
+
+
+
+/* Carte cube 3D - Taille fixe identique aux autres cartes */
+.cube-card-3d {
+  position: relative;
+  height: 100%;
+  perspective: 1200px;
+  cursor: pointer;
+  /* Garde exactement la même taille que les autres cartes */
+  min-height: 200px;
+  overflow: visible;
+}
+
+.cube-3d-system {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* Badge ANIMATION 3D */
+.cube-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(45deg, #ff5500, #8b00ff);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(255, 85, 0, 0.4);
+  overflow: hidden;
+}
+
+.badge-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent);
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Cube 3D principal */
+.cube-3d-core {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  transform: 
+    rotateX(var(--cube-rotate-x, 0deg)) 
+    rotateY(var(--cube-rotate-y, 0deg));
+}
+
+/* Face de base */
+.cube-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, 
+    rgba(30, 30, 40, 0.95) 0%,
+    rgba(20, 20, 30, 0.95) 100%);
+  border: 1px solid rgba(255, 85, 0, 0.2);
+  border-radius: 8px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* Positionnement des faces avec profondeur minimale */
+.cube-front-3d {
+  transform: translateZ(15px);
+  z-index: 6;
+}
+
+.cube-top-3d {
+  transform: rotateX(90deg) translateZ(15px);
+  background: linear-gradient(145deg, 
+    rgba(40, 30, 50, 0.9) 0%,
+    rgba(30, 20, 40, 0.9) 100%);
+  z-index: 5;
+}
+
+.cube-right-3d {
+  transform: rotateY(90deg) translateZ(15px);
+  background: linear-gradient(145deg, 
+    rgba(35, 25, 45, 0.9) 0%,
+    rgba(25, 15, 35, 0.9) 100%);
+  z-index: 4;
+}
+
+.cube-left-3d {
+  transform: rotateY(-90deg) translateZ(15px);
+  background: linear-gradient(145deg, 
+    rgba(45, 25, 40, 0.9) 0%,
+    rgba(35, 15, 30, 0.9) 100%);
+  z-index: 3;
+}
+
+.cube-bottom-3d {
+  transform: rotateX(-90deg) translateZ(15px);
+  background: linear-gradient(145deg, 
+    rgba(35, 30, 50, 0.9) 0%,
+    rgba(25, 20, 40, 0.9) 100%);
+  z-index: 2;
+}
+
+.cube-back-3d {
+  transform: rotateY(180deg) translateZ(15px);
+  background: linear-gradient(145deg, 
+    rgba(30, 30, 45, 0.9) 0%,
+    rgba(20, 20, 35, 0.9) 100%);
+  z-index: 1;
+}
+
+/* Contenu de la face avant - Même style que vos autres cartes */
+.cube-front-3d h3.accent {
+  color: #ff5500;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  position: relative;
+  z-index: 2;
+}
+
+.cube-number-3d {
+  font-size: 3.5em;
+  font-weight: 800;
+  background: linear-gradient(45deg, #ff5500, #8b00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(255, 85, 0, 0.2);
+  line-height: 1;
+  margin: 10px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.cube-front-3d .sub {
+  color: #aaa;
+  font-size: 0.85em;
+  text-align: center;
+  margin-top: 5px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Effet aura */
+.cube-aura {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at var(--aura-x, 50%) var(--aura-y, 50%),
+    rgba(255, 85, 0, 0.15) 0%,
+    rgba(139, 0, 255, 0.1) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 8px;
+}
+
+/* Animation de bordure */
+.cube-face::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  background: linear-gradient(45deg, 
+    rgba(255, 85, 0, 0.3), 
+    rgba(139, 0, 255, 0.3), 
+    rgba(255, 85, 0, 0.3));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+
+/* Animation au survol */
+.cube-card-3d:hover .cube-3d-core {
+  transform: 
+    rotateX(var(--cube-rotate-x, 0deg)) 
+    rotateY(var(--cube-rotate-y, 0deg))
+    translateZ(10px);
+}
+
+.cube-card-3d:hover .cube-aura {
+  opacity: 1;
+}
+
+.cube-card-3d:hover .cube-face::before {
+  opacity: 1;
+}
+
+/* Animation automatique subtile */
+@keyframes gentleFloat {
+  0%, 100% { 
+    transform: 
+      rotateX(var(--cube-rotate-x, 0deg)) 
+      rotateY(var(--cube-rotate-y, 0deg))
+      rotateZ(0deg);
+  }
+  50% { 
+    transform: 
+      rotateX(var(--cube-rotate-x, 0deg)) 
+      rotateY(var(--cube-rotate-y, 0deg))
+      rotateZ(0.5deg);
+  }
+}
+
+.cube-card-3d:not(:hover) .cube-3d-core {
+  animation: gentleFloat 8s ease-in-out infinite;
+}
+
+/* Ombre dynamique */
+.cube-card-3d::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 5%;
+  width: 90%;
+  height: 10px;
+  background: radial-gradient(ellipse at center, 
+    rgba(0, 0, 0, 0.2) 0%, 
+    transparent 70%);
+  filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.cube-card-3d:hover::after {
+  opacity: 0.5;
+}
+
+
+</style>
+</head>
+<body>
+  <header class="imagetitle">
+            <div class="image-background" aria-hidden="true"></div>
+            <img class="image-logo" src="Image/LOGO-K.png" alt="Logo">
+            <nav class="navigation_conteneur">
+                <a class="nav-btn" href="index.html">Accueil</a>
+                <a class="nav-btn" href="dashbord.html">Compétence</a>
+                <a class="nav-btn" href="index_page_3.html">Consulter CV</a>
+            </nav>
+        </header>
+
+        <!-- Ajouter le loader -->
+<div id="loader"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const loader = document.getElementById('loader');
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      // Vérifier si le bouton a un attribut href valide
+      const href = this.getAttribute('href');
+      if (!href || href === '#' || href === 'javascript:void(0)') {
+        return; // Ignorer les boutons sans vrai lien
+      }
+      
+      e.preventDefault();
+      
+      // Empêcher les clics multiples
+      if (this.classList.contains('loading')) return;
+      
+      // Vérifier si l'utilisateur clique sur la page actuelle
+      const currentUrl = new URL(window.location.href);
+      const targetUrl = new URL(href, window.location.href);
+      
+      // Comparer seulement le chemin, pas les paramètres ou ancres
+      const isSamePage = currentUrl.pathname === targetUrl.pathname;
+      
+      // Si c'est la même page, ne pas afficher le loader
+      if (isSamePage) {
+        // Optionnel: faire défiler vers une ancre si spécifiée
+        if (targetUrl.hash) {
+          const targetElement = document.querySelector(targetUrl.hash);
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+        return;
+      }
+      
+      // Ajouter la classe loading et afficher le loader
+      this.classList.add('loading');
+      loader.style.display = "block";
+      
+      setTimeout(() => {
+        window.location.href = href;
+      }, 1000);
+    });
+  });
+});
+</script>
+        
+
+  <div class="wrap">
+    <div class="titlebar">
+      <h1>Compétences <span style="color:var(--accent)">Dashboard</span></h1>
+      <span class="badge">Dernière MAJ <span id="lastUpdated"></span></span>
+    </div>
+
+    <!-- Filtres & bascule -->
+    <div class="controls" id="controls"></div>
+
+    <!-- KPIs -->
+<section class="grid kpis">
+  <article class="card">
+    <h3 class="accent">Score global</h3>
+    <div class="gauge">
+      <svg class="ring" viewBox="0 0 120 120" aria-label="score global">
+        <defs>
+          <!-- dégradé de l’anneau -->
+          <linearGradient id="donutGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ff631e"/>
+            <stop offset="100%" stop-color="#ff9a3c"/>
+          </linearGradient>
+        </defs>
+        <g class="donut">
+          <!-- piste -->
+          <circle class="track" cx="60" cy="60" r="48" fill="none" stroke-width="12"/>
+          <!-- valeur -->
+          <circle id="gaugeStroke" class="value" cx="60" cy="60" r="48" fill="none" stroke-width="12" stroke-linecap="round"/>
+        </g>
+        <text x="60" y="64" text-anchor="middle" font-size="22" font-weight="700" id="gaugeText">0%</text>
+      </svg>
+      <div class="kpi-text">
+        <div class="big" id="avgLabel">0 / 100</div>
+        <div class="sub">Moyenne de toutes les compétences filtrées.</div>
+      </div>
+    </div>
+  </article>
+
+
+
+
+
+
+<article class="card cube-card-3d">
+  <div class="cube-3d-system">
+    <!-- Badge ANIMATION 3D -->
+    <div class="cube-badge">
+      <span>ANIMATION 3D</span>
+      <div class="badge-pulse"></div>
+    </div>
+    
+    <!-- Cube 3D -->
+    <div class="cube-3d-core">
+      <!-- Face avant (contenu principal) -->
+      <div class="cube-face cube-front-3d">
+        <h3 class="accent">Technos maîtrisées</h3>
+        <div class="kpi-text">
+          <div class="big cube-number-3d" id="countTech">12</div>
+          <div class="sub">Nombre de compétences affichées (après filtre)</div>
+        </div>
+      </div>
+      
+      <!-- Autres faces (cachées par défaut) -->
+      <div class="cube-face cube-top-3d"></div>
+      <div class="cube-face cube-right-3d"></div>
+      <div class="cube-face cube-left-3d"></div>
+      <div class="cube-face cube-bottom-3d"></div>
+      <div class="cube-face cube-back-3d"></div>
+      
+      <!-- Effets -->
+      <div class="cube-aura"></div>
+    </div>
+  </div>
+</article>
+
+
+  <article class="card">
+    <h3 class="accent">Point forts</h3>
+    <div class="rows" id="strengths"></div>
+  </article>
+</section>
+
+
+
+
+
+
+
+
+    <!-- Radar + Top bars -->
+    <section class="grid row2" style="margin-top:16px">
+      <article class="card radar">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px">
+          <h3 class="accent" style="margin:0">Répartition par domaine</h3>
+          <div class="actions">
+            <button class="btn" id="btnReset">Réinitialiser filtres</button>
+          </div>
+        </div>
+        <canvas id="radar" width="700" height="520"></canvas>
+        <div class="note">Chaque axe représente une famille de compétences. Le polygone illustre la moyenne par domaine.</div>
+      </article>
+      <article class="card toplist">
+        <h3 class="accent">Top compétences</h3>
+        <div class="rows" id="topList"></div>
+
+        <canvas id="topLine" width="700" height="180"></canvas>
+
+      </article>
+    </section>
+
+
+
+<section class="grid rowIntro" style="margin-top:16px">
+  <article class="card">
+    <h3 class="accent">Présentation des compétences</h3>
+
+    <div class="overview">
+
+
+
+<!-- Image centrée avant le texte -->
+<figure class="intro-media">
+  <img src="Image/windows-11.png" alt="Interface moderne sous Windows 11" loading="lazy">
+</figure>
+
+<!-- Bloc 1: Windows 11 et développement -->
+<div class="overview-container">
+  <p class="overview-paragraph">
+    Passionné par l'écosystème Microsoft, je maîtrise <span class="highlight-blue">Windows 11</span> dans son ensemble et de son interface moderne fluide et personnalisable à ses fonctionnalités système avancées comme le Sandbox, WSL2 et les environnements virtualisés. 
+    En développement, je crée des applications Windows complètes avec <span class="highlight-blue">C# et WinForms</span>, en concevant des interfaces ergonomiques avec gestion d'événements, personnalisation des contrôles et intégration des APIs Windows. 
+    Je maintiens et fais évoluer des applications existantes en <span class="highlight-blue">VB.NET</span>, et développe des composants système performants en <span class="highlight-blue">C++</span> pour des traitements bas niveau et des optimisations matérielles. 
+    Je maîtrise particulièrement la création de <span class="highlight-blue">raccourcis clavier personnalisés</span>, la gestion des fenêtres, l'intégration avec l'explorateur Windows et l'automatisation des tâches système.
+    Mes connaissances approfondies en architecture Windows, incluant les appels système (API Win32), le fonctionnement du noyau et la gestion des processus, me permettent de développer des solutions stables, performantes et parfaitement intégrées à l'environnement Microsoft.
+  </p>
+</div>
+
+
+
+<!-- Image centrée avant le texte -->
+<figure class="intro-media2">
+  <img src="Image/PowerShell_icon.png" alt="Interface moderne PowerShell" loading="lazy">
+</figure>
+
+<!-- Bloc 2: PowerShell et administration système -->
+<div class="overview-container">
+  <p class="overview-paragraph">
+    Passionné d'automatisation, j'ai développé une <span class="highlight-blue">expérience significative en PowerShell</span> et en administration système, notamment pour automatiser la gestion des <span class="highlight-blue">sessions utilisateurs</span>, configurer les politiques de sécurité et contrôler les <span class="highlight-blue">privilèges</span>. 
+    Je crée des <span class="highlight-blue">scripts personnalisés</span> pour gérer les profils utilisateurs, les permissions d'accès et les paramètres de <span class="highlight-blue">confidentialité</span> sous Windows 11. 
+    Je maîtrise des opérations avancées comme l'<span class="highlight-blue">activation de licences Windows 11</span> via des commandes PowerShell et la communication avec différents systèmes via <span class="highlight-blue">SSH</span>. 
+    Mes compétences couvrent également l'optimisation des <span class="highlight-blue">processus système</span> et la gestion des environnements Windows. 
+    Je participe à la mise en place de solutions pour auditer les accès, surveiller les activités et renforcer la sécurité des postes de travail.
+  </p>
+</div>
+
+
+
+<!-- Image centrée avant le texte -->
+<figure class="intro-media3">
+  <img src="Image/OneDrive.png" alt="Interface moderne PowerShell" loading="lazy">
+</figure>
+
+<!-- Bloc 3: Cloud et protection des données -->
+<div class="overview-container">
+  <p class="overview-paragraph">
+    Mon expertise couvre la <span class="highlight-blue">conception et la sécurisation d'infrastructures Cloud</span>, avec un accent particulier sur la <span class="highlight-blue">protection des données face aux cybermenaces</span> telles que les ransomwares. Je suis capable de concevoir et de mettre en œuvre une <span class="highlight-blue">stratégie cloud résiliente</span>, intégrant des solutions de sauvegarde sécurisées, de réplication et de reprise d'activité pour garantir la <span class="highlight-blue">continuité opérationnelle</span> et la <span class="highlight-blue">restauration des données</span> en cas d'attaque.
+    Je contribue activement à la définition de politiques de sécurité pour <span class="highlight-blue">sécuriser les informations sensibles</span>, notamment par la mise en place de <span class="highlight-blue">politiques de mots de passe</span> robustes et de systèmes <span class="highlight-blue">d'authentification multi-facteurs</span>. Mon expérience pratique inclut le <span class="highlight-blue">chiffrement des données</span> (connaissance des principes cryptographiques, utilisation de BitLocker et EFS pour les fichiers, protection des données en transit et au repos dans le cloud) et la <span class="highlight-blue">sécurisation des accès</span>.
+    Je participe également à la configuration <span class="highlight-blue">d'architectures de sauvegarde immuables</span> et de plans de <span class="highlight-blue">récupération d'urgence</span>, en veillant au respect des <span class="highlight-blue">réglementations en vigueur</span> (RGPD, etc.) pour une gouvernance des données complète et sécurisée dans l'environnement cloud.
+  </p>
+</div>
+
+
+<!-- Image centrée avant le texte -->
+<figure class="intro-media4">
+  <img src="Image/Security_Image.webp" alt="Interface moderne PowerShell" loading="lazy">
+</figure>
+
+
+<!-- Bloc 4: Architecture et cybersécurité pratique -->
+<div class="overview-container">
+  <p class="overview-paragraph">
+    Passionné par la <span class="highlight-blue">cybersécurité</span>, j'ai étudié en détail différents types de malwares et leurs mécanismes d'infection. 
+    Je surveille régulièrement les <span class="highlight-blue">processus système actifs</span> pour détecter les comportements anormaux et les activités suspectes. 
+    J'ai acquis une connaissance approfondie des approches de détection des <span class="highlight-blue">EDR modernes</span> et des solutions de sécurité nouvelle génération. 
+    Mes compétences incluent la résolution avancée de problèmes au niveau du <span class="highlight-blue">registre Windows</span>, la gestion fine des <span class="highlight-blue">services système</span>, et l'implémentation de protections multicouches (pare-feu avancés, solutions EDR). 
+    Mon approche intègre la sécurité dès la conception tout en maintenant une veille constante sur les nouvelles menaces et techniques d'attaque.
+  </p>
+</div>
+
+
+
+      <!-- Badge titre moderne (centré) -->
+      <div class="title-chip" role="heading" aria-level="2">
+        <span class="chip-icon" aria-hidden="true">
+          <!-- Petit pictogramme (étincelles) -->
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4
+                     M5.8 5.8l2.9 2.9M15.3 15.3l2.9 2.9
+                     M5.8 18.2l2.9-2.9M15.3 8.7l2.9-2.9"
+                  fill="none" stroke-linecap="round" stroke-width="2"/>
+          </svg>
+        </span>
+        <span class="chip-label">Compétences clés</span>
+      </div>
+
+      <ul class="bullets" id="overviewBullets"></ul>
+    </div>
+  </article>
+</section>
+
+
+
+
+
+
+    <!-- Rings or Bars (list) -->
+    <section class="grid row3" style="margin-top:16px">
+      <article class="card rings">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px">
+          <h3 class="accent" style="margin:0">Détail des compétences</h3>
+          <div class="spacer"></div>
+          <div class="toggle" role="tablist" aria-label="Affichage">
+            <button id="tabRings" class="active" role="tab" aria-selected="true">Anneaux</button>
+            <button id="tabBars" role="tab" aria-selected="false">Barres</button>
+          </div>
+        </div>
+        <div id="skillsContainer"></div>
+      </article>
+    </section>
+  </div>
+
+
+
+
+
+<script>
+  
+  document.addEventListener('DOMContentLoaded', function() {
+  const cubeCard = document.querySelector('.cube-card-3d');
+  if (!cubeCard) return;
+  
+  const cube = cubeCard.querySelector('.cube-3d-core');
+  const aura = cubeCard.querySelector('.cube-aura');
+  
+  cubeCard.addEventListener('mousemove', function(e) {
+    const rect = this.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Calcul de la rotation limitée pour garder la même taille
+    const rotateY = ((x - centerX) / centerX) * 20; // ±20° seulement
+    const rotateX = -((y - centerY) / centerY) * 20; // ±20° seulement
+    
+    cube.style.setProperty('--cube-rotate-x', `${rotateX}deg`);
+    cube.style.setProperty('--cube-rotate-y', `${rotateY}deg`);
+    
+    // Mettre à jour l'effet aura
+    if (aura) {
+      const auraX = (x / rect.width) * 100;
+      const auraY = (y / rect.height) * 100;
+      aura.style.setProperty('--aura-x', `${auraX}%`);
+      aura.style.setProperty('--aura-y', `${auraY}%`);
+    }
+  });
+  
+  cubeCard.addEventListener('mouseleave', function() {
+    // Réinitialiser la rotation
+    cube.style.setProperty('--cube-rotate-x', '0deg');
+    cube.style.setProperty('--cube-rotate-y', '0deg');
+    
+    // Cacher l'aura
+    if (aura) {
+      aura.style.opacity = '0';
+    }
+  });
+  
+  cubeCard.addEventListener('mouseenter', function() {
+    // Afficher l'aura
+    if (aura) {
+      aura.style.opacity = '1';
+    }
+  });
+});
+
+
+  /*********************
+ * Jeu de données     *
+ *********************/
+const SKILLS = [
+  // Priorité
+  { name:"HTML/CSS",         level:80, cat:"Frontend" },
+  { name:"JavaScript",       level:70, cat:"Frontend" },
+  { name:"Sécurité Windows", level:90, cat:"Sécurité" },
+  { name:"C# / .NET",        level:60, cat:"Backend" },
+  { name:"PowerShell",       level:45, cat:"Sécurité" },
+
+  // Le reste (ordre original conservé)
+  { name:"C++",              level:42, cat:"Backend" },
+  { name:"React",            level:15, cat:"Frontend" },
+  { name:"SQL",              level:25, cat:"Data" },
+  { name:"Docker",           level:15, cat:"Autres" },
+  { name:"Git",              level:45, cat:"Autres" },
+  { name:"Linux",            level:40, cat:"DevOps" },
+  { name:"VBScript",         level:40, cat:"Backend" }
+];
+
+const DOMAINS_ORDER = ["Frontend","Backend","DevOps","Data","Sécurité","Autres"];
+
+/*********************
+ * Etat & helpers     *
+ *********************/
+let activeCats = new Set(DOMAINS_ORDER);
+let viewMode = 'rings';
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+const fmt = n => n.toLocaleString('fr-FR');
+
+// Fonctions manquantes
+function colorPairFor(skillName) {
+  const hash = skillName.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  
+  const hues = [0, 30, 60, 120, 180, 240, 300];
+  const hue = hues[Math.abs(hash) % hues.length];
+  
+  return {
+    c1: `hsl(${hue}, 70%, 50%)`,
+    c2: `hsl(${hue + 30}, 80%, 60%)`,
+    glow: `hsla(${hue}, 100%, 50%, 0.3)`
+  };
+}
+
+function animateBars() {
+  const bars = document.querySelectorAll('.fill');
+  bars.forEach(bar => {
+    const width = bar.getAttribute('data-w') + '%';
+    setTimeout(() => {
+      bar.style.width = width;
+    }, 100);
+  });
+}
+
+function updateAll() {
+  updateKpis();
+  updateStrengths();
+  updateTopList();
+  updateOverview();
+  drawRadar();
+}
+
+function filteredSkills(){
+  return SKILLS.filter(s => activeCats.has(s.cat));
+}
+
+function groupByCategory(list){
+  const map = new Map();
+  list.forEach(s=>{
+    if(!map.has(s.cat)) map.set(s.cat, []);
+    map.get(s.cat).push(s.level);
+  });
+  return map;
+}
+
+function average(arr){
+  return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+}
+
+function computeGlobalAverage(){
+  const arr = filteredSkills().map(s=>s.level);
+  return Math.round(average(arr));
+}
+
+function updateOverview(){
+const list = filteredSkills();
+const byCat = new Map();
+list.forEach(s=>{
+  if(!byCat.has(s.cat)) byCat.set(s.cat, []);
+  byCat.get(s.cat).push(s.level);
+});
+
+// Puces domaine → moyenne %
+const bullets = DOMAINS_ORDER.map(cat=>{
+  const arr = byCat.get(cat) || [];
+  if(!arr.length) return '';
+  const avg = Math.round(average(arr));
+  return `<li><span>${cat}</span><b>${avg}%</b></li>`;
+}).join('');
+document.getElementById('overviewBullets').innerHTML = bullets;
+
+// Phrase court + top 3 du filtre courant
+const top = list.slice().sort((a,b)=>b.level-a.level).slice(0,3)
+               .map(t=>`${t.name} (${t.level}%)`).join(', ');
+const txt = `Aperçu rapide : ${list.length} compétences affichées. Top : ${top}.`;
+document.getElementById('overviewText').textContent = txt;
+}
+
+/*********************
+ * UI — Filtres       *
+ *********************/
+function renderControls(){
+  const controls = $('#controls');
+  controls.innerHTML = '';
+
+  // Afficher uniquement les catégories comme indicateurs visuels (non cliquables)
+  DOMAINS_ORDER.forEach(cat => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = cat;
+    chip.dataset.active = true;
+    controls.appendChild(chip);
+  });
+
+  // Forcer l'affichage de toutes les catégories
+  activeCats = new Set(DOMAINS_ORDER);
+  updateAll();
+}
+
+/*********************
+ * UI — KPI Gauge     *
+ *********************/
+function updateKpis(){
+  const avg = computeGlobalAverage();
+  const count = filteredSkills().length;
+
+  $('#avgLabel').textContent = `${avg} / 100`;
+  $('#countTech').textContent = fmt(count);
+
+  // Texte du donut
+  $('#gaugeText').textContent = `${avg}%`;
+
+  // Stroke du donut
+  const r = 48; const C = 2*Math.PI*r;
+  const stroke = $('#gaugeStroke');
+  stroke.setAttribute('stroke-dasharray', C);
+  stroke.setAttribute('stroke-dashoffset', C*(1-avg/100));
+}
+
+function updateStrengths(){
+  const top = filteredSkills()
+    .slice().sort((a,b)=>b.level-a.level)
+    .slice(0,3);
+  const box = $('#strengths');
+  box.innerHTML = top.map(t=>`<div class="row"><strong>${t.name}</strong><small>${t.level}%</small></div>`).join('');
+}
+
+function updateTopList(){
+const top = filteredSkills().slice().sort((a,b)=>b.level-a.level).slice(0,7);
+const rows = top.map(t=>{
+  const { c1, c2, glow } = colorPairFor(t.name);
+  return `
+    <div class="row" role="listitem" aria-label="${t.name} ${t.level}%">
+      <div>
+        <strong>${t.name}</strong>
+        <div class="skillbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${t.level}">
+          <div class="fill"
+               data-w="${t.level}"
+               style="width:0%; background:linear-gradient(90deg, ${c1}, ${c2}); box-shadow:0 0 20px ${glow} inset;"></div>
+        </div>
+      </div>
+      <div><small>${t.level}%</small></div>
+    </div>`;
+}).join('');
+$('#topList').innerHTML = rows;
+animateBars();
+}
+
+function drawRadar(){
+const canvas = $('#radar');
+const ctx = canvas.getContext('2d');
+
+// tailles de police
+const FONT_RING_PCT  = 9;
+const FONT_VALUE_PCT = 10;
+
+// --- NE PAS AFFICHER le % sur ces axes :
+const HIDE_VALUE_ON = new Set(['Frontend']);
+
+/* HiDPI */
+const DPR = window.devicePixelRatio || 1;
+const cssW = canvas.clientWidth || canvas.width;
+const cssH = canvas.clientHeight || canvas.height;
+if (canvas.width !== Math.floor(cssW*DPR) || canvas.height !== Math.floor(cssH*DPR)) {
+  canvas.width  = Math.floor(cssW*DPR);
+  canvas.height = Math.floor(cssH*DPR);
+}
+ctx.setTransform(DPR,0,0,DPR,0,0);
+
+const W = cssW, H = cssH;
+const cx = W/2, cy = H/2;
+const radius = Math.min(W,H) * 0.38;
+
+const cats   = DOMAINS_ORDER;
+const mapAll = groupByCategory(SKILLS);
+const values = cats.map(cat => average(mapAll.get(cat) || [0]));
+const norms  = values.map(v => v/100);
+
+/* animation */
+const DURATION = 2500;
+const easeOut  = t => 1 - Math.pow(1-t, 3);
+const start    = performance.now();
+const INACTIVE_MIN = 0.04;
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function render(now){
+  const t = Math.min(1, (now - start)/DURATION);
+  const p = easeOut(t);
+
+  ctx.clearRect(0,0,W,H);
+
+  // --- grille concentrique
+  const rings = 5;
+  for (let s=1; s<=rings; s++){
+    const r = radius * (s/rings);
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle = s===rings ? '#222b57' : 'rgba(255,255,255,.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // --- axes pointillés
+  ctx.setLineDash([4,6]);
+  ctx.strokeStyle = 'rgba(255,255,255,.08)';
+  cats.forEach((cat,i)=>{
+    const a = (i/cats.length)*Math.PI*2 - Math.PI/2;
+    const x = cx + Math.cos(a)*radius;
+    const y = cy + Math.sin(a)*radius;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // --- labels des domaines (pills)
+  cats.forEach((cat,i)=>{
+    const a = (i/cats.length)*Math.PI*2 - Math.PI/2;
+    const lx = cx + Math.cos(a)*(radius+18);
+    const ly = cy + Math.sin(a)*(radius+18);
+    const text = cat;
+
+    ctx.font = '12px ui-sans-serif, system-ui';
+    const tw  = ctx.measureText(text).width;
+    const pad = 8, h = 20, r = 10;
+    const x = lx - (tw/2 + pad), y = ly - h/2;
+
+    ctx.save();
+    roundRect(x,y, tw + pad*2, h, r);
+    const act = activeCats.has(cat);
+    ctx.fillStyle   = act ? 'rgba(28,35,75,.85)' : 'rgba(28,35,75,.45)';
+    ctx.strokeStyle = act ? 'rgba(255,99,30,.20)' : 'rgba(255,255,255,.06)';
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = act ? '#e9ecff' : 'rgba(233,236,255,.55)';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(text, lx, ly);
+    ctx.restore();
+  });
+
+  // --- polygone
+  const pts = cats.map((cat,i)=>{
+    const a = (i/cats.length)*Math.PI*2 - Math.PI/2;
+    const raw = activeCats.has(cat) ? norms[i] : INACTIVE_MIN;
+    const k = INACTIVE_MIN + (raw - INACTIVE_MIN) * p;
+    return [ cx + Math.cos(a)*radius*k, cy + Math.sin(a)*radius*k ];
+  });
+
+  const g = ctx.createRadialGradient(cx,cy, radius*0.05, cx,cy, radius);
+  g.addColorStop(0, 'rgba(255,99,30,.30)');
+  g.addColorStop(1, 'rgba(255,154,85,.08)');
+
+  ctx.beginPath();
+  pts.forEach(([x,y],i)=> i? ctx.lineTo(x,y) : ctx.moveTo(x,y));
+  ctx.closePath();
+  ctx.fillStyle = g; ctx.fill();
+  ctx.shadowColor = 'rgba(255,110,50,.45)'; ctx.shadowBlur = 10;
+  ctx.strokeStyle = 'rgba(255,110,50,.9)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // --- points + % (sauf Frontend)
+  ctx.font = `${FONT_VALUE_PCT}px ui-sans-serif, system-ui`;
+  pts.forEach(([x,y],i)=>{
+    // point
+    ctx.beginPath(); ctx.arc(x,y,4.5,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(255,110,50,1)'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.stroke();
+
+    // badge % (masqué sur "Frontend")
+    const cat = cats[i];
+    if (activeCats.has(cat) && !HIDE_VALUE_ON.has(cat)) {
+      const val   = Math.round(values[i] * p);
+      const label = `${val}%`;
+      const tw = ctx.measureText(label).width;
+      const bw = tw + 8, bh = 16, r = 7;
+      const bx = x - bw/2, by = y - 22 - bh/2;
+
+      ctx.save();
+      roundRect(bx,by,bw,bh,r);
+      ctx.fillStyle = 'rgba(20,23,45,.85)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(255,99,30,.35)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#e9ecff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(label, x, by + bh/2);
+      ctx.restore();
+    }
+  });
+
+  // --- repères 25/50/75/100 (petit)
+  const anchorWhenAll = 'Frontend';
+  const isAll = activeCats.size === DOMAINS_ORDER.length;
+  const targetCat = (activeCats.size === 1 && !isAll) ? [...activeCats][0] : anchorWhenAll;
+  const idx = Math.max(0, DOMAINS_ORDER.indexOf(targetCat));
+  const th  = (idx / DOMAINS_ORDER.length) * Math.PI*2 - Math.PI/2;
+  const ux  = Math.cos(th), uy = Math.sin(th);
+  const inset = 10;
+
+  ctx.textAlign = Math.abs(ux) > 0.5 ? (ux>0 ? 'left' : 'right') : 'center';
+  ctx.textBaseline = Math.abs(uy) > 0.5 ? (uy>0 ? 'top'  : 'bottom') : 'middle';
+  ctx.font = `${FONT_RING_PCT}px ui-sans-serif, system-ui`;
+
+  for(let s=1; s<=4; s++){
+    const r = radius * (s/4);
+    const x = cx + ux*r - ux*inset;
+    const y = cy + uy*r - uy*inset;
+    const label = `${s*25}%`;
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.38)';
+    ctx.strokeText(label,x,y);
+    ctx.fillStyle = 'rgba(230,235,255,.95)';
+    ctx.fillText(label,x,y);
+  }
+
+  if (t < 1) requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+}
+
+// Au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+  renderControls();
+});
+
+
+
+(function () {
+  if (document.getElementById('chipLabelCharteStyles3')) return;
+  const s = document.createElement('style'); s.id='chipLabelCharteStyles3';
+  s.textContent = `
+  .title-chip.strip{background:transparent!important;border:0!important;box-shadow:none!important;
+    padding:0!important;margin:0!important;filter:none!important;clip-path:none!important;
+    backdrop-filter:none!important;outline:0!important;position:static!important}
+  .title-chip.strip::before,.title-chip.strip::after{content:none!important;display:none!important}
+  .title-chip.strip .chip-icon{display:none!important}
+
+
+  /* espace entre le paragraphe et le titre */
+.title-chip.strip .chip-label.charteFx,
+.chip-label.charteFx {
+  display:inline-block;       /* garde le centrage/inline */
+  margin-top: 21px !important; /* <-- augmente / diminue ici */
+}
+
+/* responsive */
+@media (max-width: 900px){
+  .title-chip.strip .chip-label.charteFx,
+  .chip-label.charteFx { margin-top: 20px !important; }
+}
+@media (max-width: 480px){
+  .title-chip.strip .chip-label.charteFx,
+  .chip-label.charteFx { margin-top: 14px !important; }
+}
+
+
+
+  .chip-label.charteFx{
+  font-size: var(--chip-font-size, 17px) !important;
+  line-height: 1.1 !important;
+}
+
+/* Met le titre en MAJUSCULES (garde police/anim) */
+.title-chip.strip .chip-label.charteFx,
+.chip-label.charteFx{
+  text-transform: uppercase !important;
+  letter-spacing: .14em; /* optionnel : ajuste l’espacement */
+}
+
+/* underline centrée et contrôlable via --underline-w */
+.chip-label.charteFx::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  width:var(--underline-w,100%); /* <-- change ce % pour ajuster la longueur */
+  transform:translateX(-50%) scaleX(0);    /* centré + replié */
+  transform-origin:center;
+  bottom:-8px;
+  height:2px;
+  border-radius:2px;
+  background:linear-gradient(90deg,transparent,#ffd39a,#ffb25a,#ff9b51,transparent);
+  filter:drop-shadow(0 0 8px rgba(255,173,91,.55));
+  opacity:0;
+  transition:transform .8s ease .25s, opacity .3s ease .25s;
+}
+.chip-label.charteFx.inview::after{
+  transform:translateX(-50%) scaleX(1);
+  opacity:1;
+}
+
+
+  /* Texte animé uniquement (smooth + zoom) */
+  .chip-label.charteFx{display:inline-block;position:relative;color:transparent;
+    -webkit-background-clip:text;background-clip:text;
+    background-image:linear-gradient(90deg,#ffe1ad,#ffb25a,#ffd39a,#ff9b51,#ffe1ad);
+    background-size:200% 100%;transform:translateY(8px) scale(.96);opacity:0;
+    will-change:transform,opacity,background-position}
+  .chip-label.charteFx.inview{
+    animation:revealUp .6s cubic-bezier(.2,.8,.2,1) forwards,
+             textPan 9s linear infinite .6s}
+  @keyframes revealUp{
+    0%{opacity:0;transform:translateY(8px) scale(.96)}
+    60%{opacity:1;transform:translateY(0) scale(1.015)}
+    100%{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes textPan{to{background-position:250% 0}}
+
+  /* Soulignement (pas de bulle) */
+  .chip-label.charteFx::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:2px;
+    border-radius:2px;background:linear-gradient(90deg,transparent,#ffd39a,#ffb25a,#ff9b51,transparent);
+    filter:drop-shadow(0 0 8px rgba(255,173,91,.55));transform:scaleX(0);transform-origin:left;opacity:0;
+    transition:transform .8s ease .25s,opacity .3s ease .25s}
+  .chip-label.charteFx.inview::after{transform:scaleX(1);opacity:1}
+
+  @media (prefers-reduced-motion:reduce){
+    .chip-label.charteFx.inview{animation:revealUp .6s ease forwards}
+    .chip-label.charteFx.inview::after{transition:none;transform:scaleX(1);opacity:1}
+  }`;
+  document.head.appendChild(s);
+})();
+
+/* Fige la taille/police d’origine, puis active l’anim quand visible */
+function upgradeChipLabelOnView(selector='.chip-label'){
+  const el = document.querySelector(selector); if(!el) return;
+  const wrap = el.closest('.title-chip');
+
+  // 1) Figement des styles calculés AVANT d’aplatir le wrapper
+  const elCS = getComputedStyle(el);
+  if (wrap){
+    const wCS = getComputedStyle(wrap);
+    el.style.padding = `${wCS.paddingTop} ${wCS.paddingRight} ${wCS.paddingBottom} ${wCS.paddingLeft}`;
+    el.style.borderRadius = wCS.borderRadius; // gabarit identique, pas de bulle
+  }
+  el.style.font = `${elCS.fontStyle} ${elCS.fontVariant} ${elCS.fontWeight} ${elCS.fontSize}/${elCS.lineHeight} ${elCS.fontFamily}`;
+  el.style.letterSpacing = elCS.letterSpacing;
+  el.style.textTransform = elCS.textTransform;
+
+  // 2) Aplatit le wrapper et prépare l’anim
+  if (wrap) wrap.classList.add('strip');
+  el.classList.add('charteFx');
+
+  // 3) Déclenche seulement quand visible (one-shot)
+  const show = ()=> el.classList.add('inview');
+  if ('IntersectionObserver' in window){
+    new IntersectionObserver((entries, io)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ show(); io.unobserve(e.target);} });
+    }, {threshold:.55, rootMargin:'0px 0px -10% 0px'}).observe(el);
+  } else { requestAnimationFrame(show); }
+}
+document.addEventListener('DOMContentLoaded', ()=>upgradeChipLabelOnView('.chip-label'));
+
+
+
+
+
+
+
+// ---- Donut animé (anneau) ----
+const ANIM_MS = 5000; // durée demandée
+
+function setDonut(percent) {
+  const circle = document.getElementById('gaugeStroke');
+  const text   = document.getElementById('gaugeText');
+  const avgLbl = document.getElementById('avgLabel');
+
+  const r = parseFloat(circle.getAttribute('r'));
+  const C = 2 * Math.PI * r;                 // circonférence
+
+  // Si le label est un <text> SVG, on le centre aussi côté SVG (sinon le CSS fait le job)
+  if (text && text.namespaceURI && /svg/i.test(text.namespaceURI)) {
+    text.setAttribute('x', '50%');
+    text.setAttribute('y', '50%');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+  }
+
+  // apparence de base
+  circle.style.strokeDasharray = `${C} ${C}`;
+  circle.style.strokeDashoffset = C;
+
+  // animation
+  const target = Math.max(0, Math.min(100, percent));
+  const start  = performance.now();
+
+  function tick(now) {
+    const t = Math.min(1, (now - start) / ANIM_MS);
+    const eased = 1 - Math.pow(1 - t, 3);    // easing cubic-out
+    const p = Math.round(target * eased);
+
+    // mise à jour anneau
+    const offset = C * (1 - p / 100);
+    circle.style.strokeDashoffset = offset;
+
+    // textes
+    text.textContent = `${p}%`;
+    if (avgLbl) avgLbl.textContent = `${p} / 100`;
+
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// Exemple
+document.addEventListener('DOMContentLoaded', () => {
+  setDonut(42); // remplace par ta valeur réelle
+});
+
+
+
+
+
+
+function drawTopLineChart(){
+  const canvas = document.getElementById('topLine');
+  if(!canvas) return;
+
+  /* ---------- 0) Animation ---------- */
+  const DURATION = 5000;                          // ms
+  const easeOutCubic = t => 1 - Math.pow(1-t,3);  // easing
+  let startTime = performance.now();
+
+  /* ---------- 1) HiDPI + dimensions ---------- */
+  const DPR = window.devicePixelRatio || 1;
+  const CSS_HEIGHT = 290;
+  const CSS_WIDTH  = canvas.clientWidth || 700;
+
+  canvas.style.height = CSS_HEIGHT + 'px';
+  canvas.style.width  = '100%';
+  canvas.width  = Math.floor(CSS_WIDTH  * DPR);
+  canvas.height = Math.floor(CSS_HEIGHT * DPR);
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+
+  const W = CSS_WIDTH, H = CSS_HEIGHT;
+
+  /* ---------- 2) Données (Top N) ---------- */
+  const TOP_N = 7;
+  const top = filteredSkills().slice().sort((a,b)=>b.level-a.level).slice(0,TOP_N);
+  if(top.length === 0) return;
+
+  const labels   = top.map(s => s.name);
+  const valsTop  = top.map(s => s.level);
+
+  // Tendance = régression linéaire + lissage léger
+  const n = valsTop.length;
+  const xs = Array.from({length:n}, (_,i)=>i);
+  const sum  = a => a.reduce((x,y)=>x+y,0);
+  const mean = a => a.length ? sum(a)/a.length : 0;
+  const meanX = mean(xs), meanY = mean(valsTop);
+  const m = sum(xs.map((x,i)=>(x-meanX)*(valsTop[i]-meanY))) / (sum(xs.map(x=> (x-meanX)**2)) || 1);
+  const b = meanY - m*meanX;
+  let valsTrend = xs.map(i => Math.max(0, Math.min(100, m*i + b)));
+  valsTrend = valsTrend.map((v,i,a)=> Math.round(((a[i-1]??v)+v+(a[i+1]??v))/3));
+
+  /* ---------- 2bis) Décalage demandé : -15% sur TOUTES les valeurs finales ---------- */
+  const SHIFT = -15;                               // <<<<<<<<<<<<<<
+  const clamp = v => Math.max(0, Math.min(100, v));
+  const valsTopFinal   = valsTop.map(v   => clamp(v + SHIFT));
+  const valsTrendFinal = valsTrend.map(v => clamp(v + SHIFT));
+
+  /* ---------- 3) Thème & cadre ---------- */
+  const C_GRID   = '#1c274b';
+  const C_TEXT   = 'rgba(232,236,255,.90)';
+  const C_SUB    = 'rgba(207,214,255,.70)';
+  const C_ACCENT = 'rgba(255,99,30,1)';
+  const C_SOFT   = 'rgba(255,154,85,.95)';
+
+  const labelPx = 11;
+  const pad = { l:38, r:20, t:34, b: labelPx + 16 };
+  const X0 = pad.l, Y0 = pad.t, CW = W - pad.l - pad.r, CH = H - pad.t - pad.b;
+
+  function roundedClip(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+    ctx.clip();
+  }
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  /* ---------- 4) helpers dessin ---------- */
+  const stepX = CW / Math.max(1, n-1);
+  const yOf = v => Y0 + CH*(1 - v/100);
+  const mkPts = vals => vals.map((v,i)=>({x:X0+i*stepX, y:yOf(v)}));
+
+  function drawSmooth(points, t=0.22){
+    ctx.beginPath();
+    if(points.length<2) return;
+    ctx.moveTo(points[0].x, points[0].y);
+    for(let i=0;i<points.length-1;i++){
+      const p0 = points[i-1] || points[i], p1 = points[i], p2 = points[i+1], p3 = points[i+2] || p2;
+      const cp1x = p1.x + (p2.x - p0.x) * t;
+      const cp1y = p1.y + (p2.y - p0.y) * t;
+      const cp2x = p2.x - (p3.x - p1.x) * t;
+      const cp2y = p2.y - (p3.y - p1.y) * t;
+      ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,p2.x,p2.y);
+    }
+  }
+
+  /* ---------- 5) Rendu (progress ∈ [0,1]) ---------- */
+  function render(progress){
+    const prog = easeOutCubic(progress);
+    ctx.clearRect(0,0,W,H);
+
+    // ANIMATION : 0 → valeurs FINALES DÉCALÉES (-15)
+    const topNow   = valsTopFinal.map(v   => v * prog);
+    const trendNow = valsTrendFinal.map(v => v * prog);
+
+    // stats panneau
+    const meanTopNow   = Math.round(mean(topNow));
+    const meanTrendNow = Math.round(mean(trendNow));
+    const diffLastNow  = Math.round((topNow[n-1]||0) - (trendNow[n-1]||0));
+
+    /* ---- fond + grille (clippé) ---- */
+    ctx.save();
+    roundedClip(X0, Y0, CW, CH, 12);
+
+    const bgGrad = ctx.createLinearGradient(0, Y0, 0, Y0+CH);
+    bgGrad.addColorStop(0,'rgba(255,99,30,.05)');
+    bgGrad.addColorStop(1,'rgba(255,99,30,.02)');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(X0, Y0, CW, CH);
+
+    for(let i=0;i<4;i++){
+      const y1 = Y0 + CH*(i/4), y2 = Y0 + CH*((i+1)/4);
+      if(i%2===1){ ctx.fillStyle = 'rgba(255,255,255,.02)'; ctx.fillRect(X0, y1, CW, y2-y1); }
+    }
+
+    ctx.strokeStyle = C_GRID; ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(232,236,255,.75)';
+    ctx.font = '12px ui-sans-serif, system-ui';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+
+    [0,0.25,0.5,0.75,1].forEach(q=>{
+      const y = Y0 + CH*(1-q);
+      ctx.beginPath(); ctx.moveTo(X0, y); ctx.lineTo(X0+CW, y); ctx.stroke();
+      const yLabel = (q===1) ? y + 8 : y;
+      if(q>0){ ctx.fillText(`${Math.round(q*100)}%`, X0+4, yLabel); }
+    });
+
+    // points (animés) + courbes
+    const ptsTop   = mkPts(topNow);
+    const ptsTrend = mkPts(trendNow);
+
+    // guides verticaux
+    ctx.save(); ctx.setLineDash([3,6]); ctx.strokeStyle='rgba(255,255,255,.08)';
+    ptsTop.forEach(p=>{ ctx.beginPath(); ctx.moveTo(p.x,Y0); ctx.lineTo(p.x,Y0+CH); ctx.stroke(); });
+    ctx.restore();
+
+    // tendance (pointillée)
+    ctx.setLineDash([6,5]); ctx.lineWidth=2; ctx.strokeStyle=C_SOFT;
+    drawSmooth(ptsTrend,.22); ctx.stroke(); ctx.setLineDash([]);
+
+    // zone + courbe Top
+    const fillGrad = ctx.createLinearGradient(0, Y0, 0, Y0+CH);
+    fillGrad.addColorStop(0,'rgba(255,99,30,.30)');
+    fillGrad.addColorStop(1,'rgba(255,99,30,.06)');
+    ctx.save();
+    drawSmooth(ptsTop,.22);
+    ctx.lineTo(X0 + (n-1)*stepX, Y0+CH); ctx.lineTo(X0, Y0+CH); ctx.closePath();
+    ctx.fillStyle = fillGrad; ctx.fill();
+    ctx.restore();
+
+    ctx.lineWidth=3; ctx.strokeStyle=C_ACCENT;
+    ctx.shadowColor='rgba(255,112,50,.45)'; ctx.shadowBlur=8;
+    drawSmooth(ptsTop,.22); ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // points (dans le clip)
+    ctx.font = '11px ui-sans-serif, system-ui';
+    ptsTop.forEach((pt) => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 4.6, 0, Math.PI * 2);
+      ctx.fillStyle = C_ACCENT;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,255,255,.9)';
+      ctx.stroke();
+    });
+
+    /* ---- fin du clip ---- */
+    ctx.restore();
+
+    /* ---- BADGES % HORS CLIP ---- */
+    ctx.font = '11px ui-sans-serif, system-ui';
+    const alpha = Math.min(1, prog * 1.4);
+    const pad = 6;
+    ptsTop.forEach((pt,i)=>{
+      const val = Math.round(topNow[i] || 0);
+      const text = `${val}%`;
+      const tw = ctx.measureText(text).width;
+      const bw = tw + 10, bh = 18, r = 8;
+      let bx = pt.x - bw/2;
+      let by = pt.y - 22 - bh/2;
+      bx = Math.max(X0 + pad, Math.min(bx, X0 + CW - bw - pad));
+      by = Math.max(Y0 + pad, Math.min(by, Y0 + CH - bh - pad));
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      roundRect(bx,by,bw,bh,r);
+      ctx.fillStyle='rgba(20,23,45,.85)'; ctx.fill();
+      ctx.strokeStyle='rgba(255,99,30,.45)'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle=C_TEXT; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(text, bx+bw/2, by+bh/2);
+      ctx.restore();
+    });
+
+    /* ---- Panneau (droite) ---- */
+    (function(){
+      const w=150,h=62,r=10, px=X0+CW-w-8, py=Y0+8;
+      ctx.save();
+      roundRect(px,py,w,h,r);
+      ctx.fillStyle='rgba(13,16,36,.78)'; ctx.fill();
+      ctx.strokeStyle='rgba(255,99,30,.25)'; ctx.lineWidth=1; ctx.stroke();
+
+      const rowY=[py+16,py+32,py+48];
+      ctx.font='11px ui-sans-serif, system-ui';
+      ctx.textAlign='left'; ctx.textBaseline='middle';
+      function dot(x,y,c){ ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fillStyle=c; ctx.fill(); }
+      dot(px+9,rowY[0],C_ACCENT); ctx.fillStyle = C_TEXT; ctx.fillText('Moy. Top',px+20,rowY[0]);
+      dot(px+9,rowY[1],C_SOFT ); ctx.fillText('Tendance',px+20,rowY[1]);
+      dot(px+9,rowY[2],'#ffb454'); ctx.fillText('Écart (dernier)',px+20,rowY[2]);
+
+      ctx.textAlign='right';
+      ctx.fillText(`${meanTopNow}%`,   px+w-8,rowY[0]);
+      ctx.fillText(`${meanTrendNow}%`, px+w-8,rowY[1]);
+      ctx.fillStyle = (diffLastNow>=0)?'rgba(110,242,178,.95)':'rgba(255,138,138,.95)';
+      ctx.fillText((diffLastNow>0?'+':'')+`${diffLastNow}%`, px+w-8,rowY[2]);
+      ctx.restore();
+    })();
+
+    /* ---- Chips TOP / TENDANCE ---- */
+    (function(){
+      const items=[ {text:'Top', color:C_ACCENT}, {text:'Tendance', color:C_SOFT} ];
+      let FONT=11, H=20, PADX=8, R=10, GAP=8, DOTR=3.5;
+
+      function pillW(t){ ctx.font=`${FONT}px ui-sans-serif, system-ui`; return ctx.measureText(t).width + PADX*2 + (DOTR*2+6); }
+      const widths=items.map(i=>pillW(i.text));
+      const total=widths.reduce((a,b)=>a+b,0)+GAP*(items.length-1);
+      const max=CW-16; const scale = total>max ? Math.max(0.72, max/total) : 1;
+
+      const baseX = X0+8;
+      const baseY = Math.max(Y0-8, 16);
+
+      ctx.save();
+      ctx.translate(baseX, baseY);
+      ctx.scale(scale,scale);
+      let x=0;
+      items.forEach((it,i)=>{
+        const w=widths[i], y=0;
+        roundRect(x, y-H, w, H, R);
+        const g = ctx.createLinearGradient(x,y-H,x,y);
+        g.addColorStop(0,'rgba(28,35,75,.85)'); g.addColorStop(1,'rgba(18,22,45,.85)');
+        ctx.fillStyle=g; ctx.fill(); ctx.strokeStyle='rgba(255,99,30,.22)'; ctx.lineWidth=1; ctx.stroke();
+
+        ctx.beginPath(); ctx.arc(x+PADX+DOTR, y-H/2, DOTR, 0, Math.PI*2);
+        ctx.fillStyle=it.color; ctx.shadowColor=it.color; ctx.shadowBlur=5; ctx.fill(); ctx.shadowBlur=0;
+
+        ctx.fillStyle=C_TEXT; ctx.font=`${FONT}px ui-sans-serif, system-ui`;
+        ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText(it.text, x+PADX+DOTR*2+6, y-H/2);
+
+        x += w + GAP;
+      });
+      ctx.restore();
+    })();
+
+    /* ---- Axes & labels ---- */
+    ctx.save();
+    ctx.translate(X0-22, Y0+CH/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillStyle=C_SUB; ctx.font='12px ui-sans-serif, system-ui';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Score (%)', 0, 0);
+    ctx.restore();
+
+    ctx.fillStyle=C_SUB; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.font=`${labelPx}px ui-sans-serif, system-ui`;
+    const labelY=H-8;
+    labels.forEach((lbl,i)=>{
+      const x=X0+i*stepX;
+      const short = lbl.length>14 ? lbl.slice(0,13)+'…' : lbl;
+      ctx.fillText(short, x, labelY);
+    });
+
+    // “100%” (au-dessus de tout)
+    ctx.fillStyle='rgba(232,236,255,.85)';
+    ctx.font='12px ui-sans-serif, system-ui';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('100%', X0+4, Y0+2);
+  }
+
+  /* ---------- 6) Boucle d’animation ---------- */
+  function tick(now){
+    const t = Math.min(1, (now - startTime) / DURATION);
+    render(t);
+    if(t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+
+
+
+
+
+
+
+  /* Couleurs par barre (stables par nom) */
+function hashStr(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++) h = Math.imul(31,h) + str.charCodeAt(i) | 0;
+  return h >>> 0;
+}
+function colorPairFor(key){
+  const hue = hashStr(key) % 360;                // 0..359
+  const c1 = `hsl(${hue} 90% 55%)`;              // couleur 1
+  const c2 = `hsl(${(hue+12)%360} 95% 62%)`;     // couleur 2 (un peu décalée)
+  const glow = `hsl(${hue} 95% 55% / .35)`;      // halo interne
+  return { c1, c2, glow };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+  /*********************
+   * Anneaux & Barres   *
+   *********************/
+  function ringSvg(percent){
+    const r=48, C=2*Math.PI*r, off=C*(1-percent/100);
+    return `<svg class="ring" viewBox="0 0 120 120" role="img" aria-label="${percent}%">
+      <g class="donut">
+        <circle class="track" cx="60" cy="60" r="48" fill="none" stroke-width="12"/>
+        <circle class="value" cx="60" cy="60" r="48" fill="none" stroke-width="12" stroke-linecap="round" style="stroke-dasharray:${C}; stroke-dashoffset:${off}"></circle>
+      </g>
+      <text x="60" y="64" text-anchor="middle" font-size="20" font-weight="700">${percent}%</text>
+    </svg>`
+  }
+
+  // petit anneau centré avec % (couleur via CSS var --c1)
+function radialSvg(percent){
+  const r = 40, C = 2*Math.PI*r, off = C*(1-percent/100);
+  return `
+  <svg viewBox="0 0 120 120" class="radial" role="img" aria-label="${percent}%">
+    <g class="donut" transform="rotate(-90 60 60)">
+      <circle cx="60" cy="60" r="${r}" fill="none" stroke="#263055" stroke-width="12"/>
+      <circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--c1)" stroke-linecap="round"
+              stroke-width="12" style="stroke-dasharray:${C}; stroke-dashoffset:${off}; filter:drop-shadow(0 0 6px var(--glow))"/>
+    </g>
+    <text x="60" y="66" text-anchor="middle" font-size="18" font-weight="700" fill="var(--text)">${percent}%</text>
+  </svg>`;
+}
+
+function renderRings(){
+  const list = filteredSkills().slice().sort((a,b)=>b.level-a.level);
+  const grid = document.createElement('div'); grid.className = 'skillgrid';
+
+  grid.innerHTML = list.map(s=>{
+    const { c1, c2, glow } = colorPairFor(s.name);
+    return `
+      <div class="skillcard" style="--c1:${c1}; --c2:${c2}; --glow:${glow}; --w:${s.level}%">
+        <div class="head">
+          <span class="dot"></span>
+          <div class="name">${s.name}</div>
+          <span class="cat">${s.cat}</span>
+        </div>
+        <div class="center">${radialSvg(s.level)}</div>
+        <div class="meter"><i></i></div>
+      </div>`;
+  }).join('');
+
+  return grid;
+}
+
+
+  function renderBars(){
+  const list = filteredSkills().slice().sort((a,b)=>b.level-a.level);
+  const rows = document.createElement('div'); rows.className='rows';
+  rows.innerHTML = list.map(s=>{
+    const { c1, c2, glow } = colorPairFor(s.name);
+    return `<div class="row" role="listitem" aria-label="${s.name} ${s.level}%">
+      <div>
+        <strong>${s.name}</strong>
+        <div class="skillbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${s.level}" role="progressbar">
+          <div class="fill" style="width:${s.level}%; background:linear-gradient(90deg, ${c1}, ${c2}); box-shadow:0 0 20px ${glow} inset;"></div>
+        </div>
+      </div>
+      <div><small>${s.cat} — ${s.level}%</small></div>
+    </div>`;
+  }).join('');
+  return rows;
+}
+
+
+  function renderSkillsSection(){
+    const box = $('#skillsContainer'); box.innerHTML='';
+    const content = (viewMode==='rings') ? renderRings() : renderBars();
+    box.appendChild(content);
+    // déclenche l'animation des barres
+    if(viewMode==='bars') requestAnimationFrame(()=>$$('.skillbar .fill').forEach(el=> el.style.width = el.style.width));
+  }
+
+
+
+
+function animateBars(){
+  const ANIM_MS = 3000;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fills = document.querySelectorAll('.skillbar .fill');
+  fills.forEach(el=>{
+    const target = el.getAttribute('data-w') || '0';
+    if (reduce){
+      el.style.transitionDuration = '0ms';
+      el.style.width = target + '%';
+      return;
+    }
+    // reset -> forcer reflow -> aller vers la cible (déclenche la transition)
+    el.style.width = '0%';
+    // forcer le reflow pour que le navigateur "prenne" le 0%
+    void el.offsetWidth;
+    el.style.transitionDuration = ANIM_MS + 'ms';
+    el.style.width = target + '%';
+  });
+}
+
+
+
+
+  /*********************
+   * Initialisation     *
+   *********************/
+  function updateAll(){
+  updateKpis();
+  updateStrengths();
+  updateTopList();
+  drawTopLineChart();   // ← nouveau graphe
+  drawRadar();
+  renderSkillsSection();
+}
+
+
+  function initTabs(){
+    const ringsBtn = $('#tabRings');
+    const barsBtn = $('#tabBars');
+    ringsBtn.addEventListener('click',()=>{ viewMode='rings'; ringsBtn.classList.add('active'); barsBtn.classList.remove('active'); renderSkillsSection(); });
+    barsBtn.addEventListener('click',()=>{ viewMode='bars'; barsBtn.classList.add('active'); ringsBtn.classList.remove('active'); renderSkillsSection(); });
+  }
+
+  function init(){
+    $('#lastUpdated').textContent = new Date().toLocaleDateString('fr-FR');
+    renderControls();
+    initTabs();
+    $('#btnReset').addEventListener('click', ()=>{ activeCats = new Set(DOMAINS_ORDER); renderControls(); updateAll(); });
+    updateAll();
+  }
+  init();
+</script>
+</body>
+</html>
